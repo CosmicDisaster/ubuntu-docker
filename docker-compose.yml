@@ -1,0 +1,28 @@
+services:
+  ubuntu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_NAME: ${USER_NAME}
+        USER_UID: ${USER_UID}
+        USER_GID: ${USER_GID}
+        APT_PACKAGES: ${APT_PACKAGES}
+    image: ${USER_NAME}-ubuntu
+    container_name: ${USER_NAME}-ubuntu
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      USER_NAME: ${USER_NAME}
+    ports:
+      - "127.0.0.1:${SSH_PORT:-2222}:22"
+    volumes:
+      - /data/${USER_NAME}-ubuntu/workspace:/workspace
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.ssh:/home/${USER_NAME}/.ssh
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.config:/home/${USER_NAME}/.config
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.local:/home/${USER_NAME}/.local
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.cache/pip:/home/${USER_NAME}/.cache/pip
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.cache/pipx:/home/${USER_NAME}/.cache/pipx
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.npm:/home/${USER_NAME}/.npm
+      - /data/${USER_NAME}-ubuntu/home/${USER_NAME}/.cache/node-gyp:/home/${USER_NAME}/.cache/node-gyp
