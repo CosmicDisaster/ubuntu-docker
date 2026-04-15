@@ -5,6 +5,7 @@ USER_NAME="${USER_NAME:-devuser}"
 USER_HOME="/home/${USER_NAME}"
 USER_SSH_DIR="${USER_HOME}/.ssh"
 AUTHORIZED_KEYS_TARGET="${USER_SSH_DIR}/authorized_keys"
+USER_GROUP="$(id -gn "${USER_NAME}")"
 
 mkdir -p /var/run/sshd "${USER_SSH_DIR}"
 chmod 700 "${USER_SSH_DIR}"
@@ -20,7 +21,7 @@ if [[ -f /tmp/authorized_keys ]]; then
 fi
 
 if [[ -f "${AUTHORIZED_KEYS_TARGET}" ]]; then
-  chown "${USER_NAME}:${USER_NAME}" "${AUTHORIZED_KEYS_TARGET}"
+  chown "${USER_NAME}:${USER_GROUP}" "${AUTHORIZED_KEYS_TARGET}"
   chmod 600 "${AUTHORIZED_KEYS_TARGET}"
 fi
 

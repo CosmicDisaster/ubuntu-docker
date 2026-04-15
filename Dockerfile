@@ -14,10 +14,22 @@ RUN if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; the
       ln -s /usr/bin/fdfind /usr/local/bin/fd; \
     fi
 
-RUN groupadd --gid "${USER_GID}" "${USER_NAME}" \
-    && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USER_NAME}" \
-    && echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${USER_NAME}" \
-    && chmod 0440 "/etc/sudoers.d/${USER_NAME}"
+RUN set -eux; \
+        if ! getent group "${USER_GID}" >/dev/null; then \
+            groupadd --gid "${USER_GID}" "${USER_NAME}"; \
+        fi; \
+        GROUP_NAME="$(getent group "${USER_GID}" | cut -d: -f1)"; \
+        EXISTING_USER="$(getent passwd "${USER_UID}" | cut -d: -f1 || true)"; \
+        if id -u "${USER_NAME}" >/dev/null 2>&1; then \
+            usermod --uid "${USER_UID}" --gid "${GROUP_NAME}" --home "/home/${USER_NAME}" --shell /bin/bash "${USER_NAME}"; \
+        elif [ -n "${EXISTING_USER}" ]; then \
+            usermod --login "${USER_NAME}" --home "/home/${USER_NAME}" --move-home "${EXISTING_USER}"; \
+            usermod --uid "${USER_UID}" --gid "${GROUP_NAME}" --shell /bin/bash "${USER_NAME}"; \
+        else \
+            useradd --uid "${USER_UID}" --gid "${GROUP_NAME}" --create-home --shell /bin/bash "${USER_NAME}"; \
+        fi; \
+        echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${USER_NAME}"; \
+        chmod 0440 "/etc/sudoers.d/${USER_NAME}"
 
 RUN mkdir -p /var/run/sshd \
     && mkdir -p "/home/${USER_NAME}/.ssh" \
